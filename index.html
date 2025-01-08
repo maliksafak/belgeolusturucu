@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certificate Generator</title>
+    <script src="jszip.min.js"></script>
+    <script src="//unpkg.com/canvas-txt"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            width: 80%;
+            max-width: 900px;
+        }
+        .preview-area {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        #certificate-preview {
+            max-width: 100%;
+            border: 1px solid #ccc;
+        }
+        textarea {
+            width: 49%;
+            height: 150px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Bulk Certificate Generator</h1>
+        <form id="certificate-form">
+            <label for="template-upload">Upload Certificate Template (PNG):</label>
+            <input type="file" id="template-upload" accept="image/png" required>
+
+            <div>
+                <p>
+                <label for="names">Enter Names (Left) and Message (Right):</label>
+                </p>
+                <textarea id="names" required></textarea>
+                <textarea id="message" required></textarea>
+            </div>
+            <p>
+                <label>Name:</label>
+                <br>
+                <label for="name-font">Font:</label>
+                <select id="name-font">
+                    <option value="Arial">Arial</option>
+                    <option value="Times New Roman">Times New Roman</option>
+                    <option value="Georgia">Georgia</option>
+                    <option value="Custom">Custom</option>
+                </select>
+                <label for="name-custom-font">Custom Font Name:</label>
+                <input type="text" id="name-custom-font">
+                <input type="checkbox" id="name-font-bold" value="0">Bold</input>
+                <input type="checkbox" id="name-font-italic" value="0">Italic</input>
+                <br>
+                <label for="name-line-spacing">Line Spacing (%):</label>
+                <input type="number" id="name-line-spacing" value="100">
+                <label for="name-font-size">Size:</label>
+                <input type="number" id="name-font-size" value="84">
+                <label for="name-max-width">Max Width (%):</label>
+                <input type="number" id="name-max-width" value="80">
+                <br>
+                <label for="name-y-position">Name Vertical Position (%):</label>
+                <input type="number" id="name-y-position" value="47">
+            </p>
+            <p>
+                <label>Message:</label>
+                <br>
+                <label for="message-font">Font:</label>
+                <select id="message-font">
+                    <option value="Arial">Arial</option>
+                    <option value="Times New Roman">Times New Roman</option>
+                    <option value="Georgia">Georgia</option>
+                    <option value="Custom">Custom</option>
+                </select>
+                <label for="message-custom-font">Custom Font Name:</label>
+                <input type="text" id="message-custom-font">
+                <input type="checkbox" id="message-font-bold" value="0">Bold</input>
+                <input type="checkbox" id="message-font-italic" value="0">Italic</input>
+                <br>
+                <label for="message-line-spacing">Line Spacing (%):</label>
+                <input type="number" id="message-line-spacing" value="100">
+                <label for="message-font-size">Size:</label>
+                <input type="number" id="message-font-size" value="84">
+                <label for="message-max-width">Max Width (%):</label>
+                <input type="number" id="message-max-width" value="80">
+                <br>
+                <label for="message-y-position">Message Vertical Position (%):</label>
+                <input type="number" id="message-y-position" value="55">
+            </p>
+            <button type="submit">Generate Certificates</button>
+            <a id="download-link" download="certificates.zip" style="display:none">Download Certificates</a>
+        </form>
+
+        <div class="preview-area">
+            <canvas id="certificate-preview"></canvas>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('certificate-form');
+        const canvas = document.getElementById('certificate-preview');
+        const ctx = canvas.getContext('2d');
+        let templateImage = new Image();
+        let zip = new JSZip();
+        const { drawText, getTextHeight, splitText } = window.canvasTxt;
+
+        const wrap = (s, w) => s.replace(
+            new RegExp(`(?![^\\n]{1,${w}}$)([^\\n]{1,${w}})\\s`, 'g'), '$1\n'
+        );
+
+        document.getElementById('template-upload').addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                templateImage.src = e.target.result;
+                templateImage.onload = () => {
+                    canvas.width = templateImage.width;
+                    canvas.height = templateImage.height;
+                    ctx.drawImage(templateImage, 0, 0);
+                }
+            }
+            reader.readAsDataURL(file);
+        });
+
+        ["names", "message", "name-font", "name-custom-font", "name-line-spacing", "name-font-bold", "name-font-italic", "message-font", "message-custom-font", "message-line-spacing", "message-font-bold", "message-font-italic", "name-font-size", "message-font-size", "name-max-width", "message-max-width", "name-y-position", "message-y-position"].forEach((id) => {
+            document.getElementById(id).addEventListener('input', (event) => {
+                const names = document.getElementById('names').value.split('\n');
+                const message = document.getElementById('message').value;
+
+                let nameFont = document.getElementById('name-font').value;
+                let messageFont = document.getElementById('message-font').value;
+                if (nameFont === 'Custom') {
+                    nameFont = document.getElementById('name-custom-font').value;
+                }
+                if (messageFont === 'Custom') {
+                    messageFont = document.getElementById('message-custom-font').value;
+                }
+
+                const nameLineSpacing = parseFloat(document.getElementById('name-line-spacing').value);
+                const messageLineSpacing = parseFloat(document.getElementById('message-line-spacing').value);
+
+                const nameFontSize = document.getElementById('name-font-size').value;
+                const messageFontSize = document.getElementById('message-font-size').value;
+
+                const nameMaxWidth = document.getElementById('name-max-width').value;
+                const messageMaxWidth = document.getElementById('message-max-width').value;
+
+                const nameYPos = document.getElementById('name-y-position').value;
+                const messageYPos = document.getElementById('message-y-position').value;
+                
+                const nameFontBold = document.getElementById('name-font-bold').checked;
+                const nameFontItalic = document.getElementById('name-font-italic').checked;
+
+                const messageFontBold = document.getElementById('message-font-bold').checked;
+                const messageFontItalic = document.getElementById('message-font-italic').checked;
+
+                ctx.drawImage(templateImage, 0, 0);
+                let nameFontStyle = '';
+                if (nameFontBold) {
+                    nameFontStyle = 'bold ' + nameFontStyle;
+                }
+                if (nameFontItalic) {
+                    nameFontStyle = 'italic ' + nameFontStyle;
+                }
+                window.canvasTxt.drawText(ctx, names[0], {
+                    x: canvas.width * ((1.0 - (nameMaxWidth / 100)) / 2),
+                    y: canvas.height * nameYPos / 100,
+                    width: canvas.width * (nameMaxWidth / 100),
+                    height: canvas.height,
+                    align: 'center',
+                    vAlign: 'top',
+                    font: nameFont,
+                    fontSize: nameFontSize,
+                    fontStyle: nameFontStyle,
+                    lineHeight: nameLineSpacing,
+                });
+
+                let messageFontStyle = '';
+                if (messageFontBold) {
+                    messageFontStyle = 'bold ' + messageFontStyle;
+                }
+                if (messageFontItalic) {
+                    messageFontStyle = 'italic ' + messageFontStyle;
+                }
+                window.canvasTxt.drawText(ctx, message, {
+                    x: canvas.width * ((1.0 - (messageMaxWidth / 100)) / 2),
+                    y: canvas.height * messageYPos / 100,
+                    width: canvas.width * (messageMaxWidth / 100),
+                    height: canvas.height,
+                    align: 'center',
+                    vAlign: 'top',
+                    font: messageFont,
+                    fontSize: messageFontSize,
+                    fontStyle: messageFontStyle,
+                    lineHeight: messageLineSpacing,
+                });
+            });
+        });
+
+        form.addEventListener('submit', (event) => {
+            event.preventDefault();
+            let certificates = [];
+
+            const names = document.getElementById('names').value.split('\n');
+            const message = document.getElementById('message').value;
+
+            let nameFont = document.getElementById('name-font').value;
+            let messageFont = document.getElementById('message-font').value;
+            if (nameFont === 'Custom') {
+                nameFont = document.getElementById('name-custom-font').value;
+            }
+            if (messageFont === 'Custom') {
+                messageFont = document.getElementById('message-custom-font').value;
+            }
+
+            const nameLineSpacing = parseFloat(document.getElementById('name-line-spacing').value);
+            const messageLineSpacing = parseFloat(document.getElementById('message-line-spacing').value);
+
+            const nameFontSize = document.getElementById('name-font-size').value;
+            const messageFontSize = document.getElementById('message-font-size').value;
+
+            const nameMaxWidth = document.getElementById('name-max-width').value;
+            const messageMaxWidth = document.getElementById('message-max-width').value;
+
+            const nameYPos = document.getElementById('name-y-position').value;
+            const messageYPos = document.getElementById('message-y-position').value;
+            
+            const nameFontBold = document.getElementById('name-font-bold').checked;
+            const nameFontItalic = document.getElementById('name-font-italic').checked;
+
+            const messageFontBold = document.getElementById('message-font-bold').checked;
+            const messageFontItalic = document.getElementById('message-font-italic').checked;
+
+            names.forEach((name, index) => {
+                ctx.drawImage(templateImage, 0, 0);
+                let nameFontStyle = '';
+                if (nameFontBold) {
+                    nameFontStyle = 'bold ' + nameFontStyle;
+                }
+                if (nameFontItalic) {
+                    nameFontStyle = 'italic ' + nameFontStyle;
+                }
+                window.canvasTxt.drawText(ctx, name, {
+                    x: canvas.width * ((1.0 - (nameMaxWidth / 100)) / 2),
+                    y: canvas.height * nameYPos / 100,
+                    width: canvas.width * (nameMaxWidth / 100),
+                    height: canvas.height,
+                    align: 'center',
+                    vAlign: 'top',
+                    font: nameFont,
+                    fontSize: nameFontSize,
+                    fontStyle: nameFontStyle,
+                    lineHeight: nameLineSpacing,
+                });
+
+                let messageFontStyle = '';
+                if (messageFontBold) {
+                    messageFontStyle = 'bold ' + messageFontStyle;
+                }
+                if (messageFontItalic) {
+                    messageFontStyle = 'italic ' + messageFontStyle;
+                }
+                window.canvasTxt.drawText(ctx, message, {
+                    x: canvas.width * ((1.0 - (messageMaxWidth / 100)) / 2),
+                    y: canvas.height * messageYPos / 100,
+                    width: canvas.width * (messageMaxWidth / 100),
+                    height: canvas.height,
+                    align: 'center',
+                    vAlign: 'top',
+                    font: messageFont,
+                    fontSize: messageFontSize,
+                    fontStyle: messageFontStyle,
+                    lineHeight: messageLineSpacing,
+                });
+                zip.file(`${name}.png`, canvas.toDataURL('image/png').split(";base64,")[1], {base64: true});
+            });
+
+            zip.generateAsync({type:"base64"})
+            .then(function(content) {
+                const link = document.getElementById('download-link');
+                link.href = "data:application/zip;base64,"+content;
+                link.style.display = 'block';
+            });
+        });
+    </script>
+</body>
+</html>
