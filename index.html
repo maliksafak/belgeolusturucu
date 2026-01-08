@@ -7,103 +7,388 @@
     <script src="jszip.min.js"></script>
     <script src="//unpkg.com/canvas-txt"></script>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 30px 20px;
             display: flex;
-            flex-direction: column;
-            align-items: center;
             justify-content: center;
+            align-items: flex-start;
         }
+
         .container {
-            width: 80%;
-            max-width: 900px;
+            width: 100%;
+            max-width: 1200px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
         }
+
+        h1 {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            font-size: 32px;
+            text-align: center;
+            margin: 0;
+        }
+
+        #certificate-form {
+            padding: 40px;
+        }
+
+        .form-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .form-section h2 {
+            color: #667eea;
+            font-size: 16px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .section-title-icon {
+            font-size: 18px;
+        }
+
+        label {
+            display: block;
+            color: #333;
+            font-weight: 500;
+            margin-bottom: 5px;
+            font-size: 13px;
+        }
+
+        input[type="file"],
+        input[type="text"],
+        input[type="number"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 8px 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 13px;
+            transition: all 0.3s ease;
+            margin-bottom: 8px;
+        }
+
+        input[type="file"]:focus,
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .textarea-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .textarea-row textarea {
+            margin-bottom: 0;
+        }
+
+        .textarea-row label {
+            grid-column: 1 / -1;
+            margin-bottom: 5px;
+        }
+
+        .input-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .input-group.full {
+            grid-template-columns: 1fr;
+        }
+
+        .input-group label {
+            margin-bottom: 4px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+
+        input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+            margin-right: 4px;
+            accent-color: #667eea;
+        }
+
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0;
+            cursor: pointer;
+            font-weight: 400;
+            font-size: 13px;
+        }
+
         .preview-area {
             display: flex;
             justify-content: center;
-            margin: 20px 0;
+            align-items: center;
+            background: #f8f9fa;
+            padding: 30px;
+            border-top: 1px solid #e0e0e0;
+            min-height: 300px;
         }
+
         #certificate-preview {
             max-width: 100%;
-            border: 1px solid #ccc;
+            max-height: 600px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
-        textarea {
-            width: 49%;
-            height: 150px;
+
+        button[type="submit"] {
+            width: 100%;
+            padding: 14px 28px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        button[type="submit"]:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        button[type="submit"]:active {
+            transform: translateY(0);
+        }
+
+        #download-link {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 12px 28px;
+            background: #27ae60;
+            color: white;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        #download-link:hover {
+            background: #229954;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                border-radius: 0;
+            }
+
+            h1 {
+                font-size: 24px;
+                padding: 20px;
+            }
+
+            #certificate-form {
+                padding: 20px;
+            }
+
+            .form-section {
+                padding: 15px;
+            }
+
+            .textarea-row {
+                grid-template-columns: 1fr;
+            }
+
+            .input-group {
+                grid-template-columns: 1fr;
+            }
+
+            .checkbox-group {
+                gap: 10px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Bulk Certificate Generator</h1>
+        <h1>📜 Bulk Certificate Generator</h1>
         <form id="certificate-form">
-            <label for="template-upload">Upload Certificate Template (PNG):</label>
-            <input type="file" id="template-upload" accept="image/png" required>
-
-            <div>
-                <p>
-                <label for="names">Enter Names (Left) and Message (Right):</label>
-                </p>
-                <textarea id="names" required></textarea>
-                <textarea id="message" required></textarea>
+            <!-- Template Upload Section -->
+            <div class="form-section">
+                <h2><span class="section-title-icon">🖼️</span>Certificate Template</h2>
+                <label for="template-upload">Upload Certificate Template (PNG):</label>
+                <input type="file" id="template-upload" accept="image/png" required>
             </div>
-            <p>
-                <label>Name:</label>
-                <br>
-                <label for="name-font">Font:</label>
-                <select id="name-font">
-                    <option value="Arial">Arial</option>
-                    <option value="Times New Roman">Times New Roman</option>
-                    <option value="Georgia">Georgia</option>
-                    <option value="Custom">Custom</option>
-                </select>
-                <label for="name-custom-font">Custom Font Name:</label>
-                <input type="text" id="name-custom-font">
-                <input type="checkbox" id="name-font-bold" value="0">Bold</input>
-                <input type="checkbox" id="name-font-italic" value="0">Italic</input>
-                <br>
-                <label for="name-line-spacing">Line Spacing (%):</label>
-                <input type="number" id="name-line-spacing" value="100">
-                <label for="name-font-size">Size:</label>
-                <input type="number" id="name-font-size" value="84">
-                <label for="name-max-width">Max Width (%):</label>
-                <input type="number" id="name-max-width" value="80">
-                <br>
-                <label for="name-y-position">Name Vertical Position (%):</label>
-                <input type="number" id="name-y-position" value="47">
-            </p>
-            <p>
-                <label>Message:</label>
-                <br>
-                <label for="message-font">Font:</label>
-                <select id="message-font">
-                    <option value="Arial">Arial</option>
-                    <option value="Times New Roman">Times New Roman</option>
-                    <option value="Georgia">Georgia</option>
-                    <option value="Custom">Custom</option>
-                </select>
-                <label for="message-custom-font">Custom Font Name:</label>
-                <input type="text" id="message-custom-font">
-                <input type="checkbox" id="message-font-bold" value="0">Bold</input>
-                <input type="checkbox" id="message-font-italic" value="0">Italic</input>
-                <br>
-                <label for="message-line-spacing">Line Spacing (%):</label>
-                <input type="number" id="message-line-spacing" value="100">
-                <label for="message-font-size">Size:</label>
-                <input type="number" id="message-font-size" value="84">
-                <label for="message-max-width">Max Width (%):</label>
-                <input type="number" id="message-max-width" value="80">
-                <br>
-                <label for="message-y-position">Message Vertical Position (%):</label>
-                <input type="number" id="message-y-position" value="55">
-            </p>
-            <button type="submit">Generate Certificates</button>
-            <a id="download-link" download="certificates.zip" style="display:none">Download Certificates</a>
-        </form>
 
-        <div class="preview-area">
-            <canvas id="certificate-preview"></canvas>
-        </div>
+            <!-- Names and Message Section -->
+            <div class="form-section">
+                <h2><span class="section-title-icon">✍️</span>Content</h2>
+                <label>Enter Names (Left) and Message (Right):</label>
+                <div class="textarea-row">
+                    <div>
+                        <label for="names" style="font-size: 12px; color: #666;">Names (one per line)</label>
+                        <textarea id="names" required></textarea>
+                    </div>
+                    <div>
+                        <label for="message" style="font-size: 12px; color: #666;">Message</label>
+                        <textarea id="message" required></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preview Section -->
+            <div class="preview-area">
+                <canvas id="certificate-preview"></canvas>
+            </div>
+
+            <!-- Name Formatting Section -->
+            <div class="form-section">
+                <h2><span class="section-title-icon">🔤</span>Name Formatting</h2>
+                <div class="input-group">
+                    <div>
+                        <label for="name-font">Font:</label>
+                        <select id="name-font">
+                            <option value="Arial">Arial</option>
+                            <option value="Times New Roman">Times New Roman</option>
+                            <option value="Georgia">Georgia</option>
+                            <option value="Custom">Custom</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="name-custom-font">Custom Font Name:</label>
+                        <input type="text" id="name-custom-font" placeholder="e.g., Verdana">
+                    </div>
+                </div>
+
+                <div class="checkbox-group">
+                    <label>
+                        <input type="checkbox" id="name-font-bold">
+                        Bold
+                    </label>
+                    <label>
+                        <input type="checkbox" id="name-font-italic">
+                        Italic
+                    </label>
+                </div>
+
+                <div class="input-group">
+                    <div>
+                        <label for="name-font-size">Font Size:</label>
+                        <input type="number" id="name-font-size" value="84">
+                    </div>
+                    <div>
+                        <label for="name-line-spacing">Line Spacing (%):</label>
+                        <input type="number" id="name-line-spacing" value="100">
+                    </div>
+                    <div>
+                        <label for="name-max-width">Max Width (%):</label>
+                        <input type="number" id="name-max-width" value="80">
+                    </div>
+                    <div>
+                        <label for="name-y-position">Vertical Position (%):</label>
+                        <input type="number" id="name-y-position" value="47">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Message Formatting Section -->
+            <div class="form-section">
+                <h2><span class="section-title-icon">💬</span>Message Formatting</h2>
+                <div class="input-group">
+                    <div>
+                        <label for="message-font">Font:</label>
+                        <select id="message-font">
+                            <option value="Arial">Arial</option>
+                            <option value="Times New Roman">Times New Roman</option>
+                            <option value="Georgia">Georgia</option>
+                            <option value="Custom">Custom</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="message-custom-font">Custom Font Name:</label>
+                        <input type="text" id="message-custom-font" placeholder="e.g., Verdana">
+                    </div>
+                </div>
+
+                <div class="checkbox-group">
+                    <label>
+                        <input type="checkbox" id="message-font-bold">
+                        Bold
+                    </label>
+                    <label>
+                        <input type="checkbox" id="message-font-italic">
+                        Italic
+                    </label>
+                </div>
+
+                <div class="input-group">
+                    <div>
+                        <label for="message-font-size">Font Size:</label>
+                        <input type="number" id="message-font-size" value="84">
+                    </div>
+                    <div>
+                        <label for="message-line-spacing">Line Spacing (%):</label>
+                        <input type="number" id="message-line-spacing" value="100">
+                    </div>
+                    <div>
+                        <label for="message-max-width">Max Width (%):</label>
+                        <input type="number" id="message-max-width" value="80">
+                    </div>
+                    <div>
+                        <label for="message-y-position">Vertical Position (%):</label>
+                        <input type="number" id="message-y-position" value="55">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="form-section">
+                <button type="submit">🚀 Generate Certificates</button>
+                <a id="download-link" download="certificates.zip" style="display:none">⬇️ Download Certificates</a>
+            </div>
+        </form>
     </div>
 
     <script>
@@ -134,8 +419,8 @@
 
         ["names", "message", "name-font", "name-custom-font", "name-line-spacing", "name-font-bold", "name-font-italic", "message-font", "message-custom-font", "message-line-spacing", "message-font-bold", "message-font-italic", "name-font-size", "message-font-size", "name-max-width", "message-max-width", "name-y-position", "message-y-position"].forEach((id) => {
             document.getElementById(id).addEventListener('input', (event) => {
-                const names = document.getElementById('names').value.split('\n');
-                const message = document.getElementById('message').value;
+                const names = document.getElementById('names').value.split('\n').filter(n => n.trim());
+                const messages = document.getElementById('message').value.split('\n').filter(m => m.trim());
 
                 let nameFont = document.getElementById('name-font').value;
                 let messageFont = document.getElementById('message-font').value;
@@ -172,7 +457,7 @@
                 if (nameFontItalic) {
                     nameFontStyle = 'italic ' + nameFontStyle;
                 }
-                window.canvasTxt.drawText(ctx, names[0], {
+                window.canvasTxt.drawText(ctx, names[0] || '', {
                     x: canvas.width * ((1.0 - (nameMaxWidth / 100)) / 2),
                     y: canvas.height * nameYPos / 100,
                     width: canvas.width * (nameMaxWidth / 100),
@@ -192,7 +477,7 @@
                 if (messageFontItalic) {
                     messageFontStyle = 'italic ' + messageFontStyle;
                 }
-                window.canvasTxt.drawText(ctx, message, {
+                window.canvasTxt.drawText(ctx, messages[0] || '', {
                     x: canvas.width * ((1.0 - (messageMaxWidth / 100)) / 2),
                     y: canvas.height * messageYPos / 100,
                     width: canvas.width * (messageMaxWidth / 100),
@@ -211,8 +496,8 @@
             event.preventDefault();
             let certificates = [];
 
-            const names = document.getElementById('names').value.split('\n');
-            const message = document.getElementById('message').value;
+            const names = document.getElementById('names').value.split('\n').filter(n => n.trim());
+            const messages = document.getElementById('message').value.split('\n').filter(m => m.trim());
 
             let nameFont = document.getElementById('name-font').value;
             let messageFont = document.getElementById('message-font').value;
@@ -241,48 +526,52 @@
             const messageFontBold = document.getElementById('message-font-bold').checked;
             const messageFontItalic = document.getElementById('message-font-italic').checked;
 
-            names.forEach((name, index) => {
-                ctx.drawImage(templateImage, 0, 0);
-                let nameFontStyle = '';
-                if (nameFontBold) {
-                    nameFontStyle = 'bold ' + nameFontStyle;
-                }
-                if (nameFontItalic) {
-                    nameFontStyle = 'italic ' + nameFontStyle;
-                }
-                window.canvasTxt.drawText(ctx, name, {
-                    x: canvas.width * ((1.0 - (nameMaxWidth / 100)) / 2),
-                    y: canvas.height * nameYPos / 100,
-                    width: canvas.width * (nameMaxWidth / 100),
-                    height: canvas.height,
-                    align: 'center',
-                    vAlign: 'top',
-                    font: nameFont,
-                    fontSize: nameFontSize,
-                    fontStyle: nameFontStyle,
-                    lineHeight: nameLineSpacing,
-                });
+            names.forEach((name) => {
+                messages.forEach((message, msgIndex) => {
+                    ctx.drawImage(templateImage, 0, 0);
+                    let nameFontStyle = '';
+                    if (nameFontBold) {
+                        nameFontStyle = 'bold ' + nameFontStyle;
+                    }
+                    if (nameFontItalic) {
+                        nameFontStyle = 'italic ' + nameFontStyle;
+                    }
+                    window.canvasTxt.drawText(ctx, name, {
+                        x: canvas.width * ((1.0 - (nameMaxWidth / 100)) / 2),
+                        y: canvas.height * nameYPos / 100,
+                        width: canvas.width * (nameMaxWidth / 100),
+                        height: canvas.height,
+                        align: 'center',
+                        vAlign: 'top',
+                        font: nameFont,
+                        fontSize: nameFontSize,
+                        fontStyle: nameFontStyle,
+                        lineHeight: nameLineSpacing,
+                    });
 
-                let messageFontStyle = '';
-                if (messageFontBold) {
-                    messageFontStyle = 'bold ' + messageFontStyle;
-                }
-                if (messageFontItalic) {
-                    messageFontStyle = 'italic ' + messageFontStyle;
-                }
-                window.canvasTxt.drawText(ctx, message, {
-                    x: canvas.width * ((1.0 - (messageMaxWidth / 100)) / 2),
-                    y: canvas.height * messageYPos / 100,
-                    width: canvas.width * (messageMaxWidth / 100),
-                    height: canvas.height,
-                    align: 'center',
-                    vAlign: 'top',
-                    font: messageFont,
-                    fontSize: messageFontSize,
-                    fontStyle: messageFontStyle,
-                    lineHeight: messageLineSpacing,
+                    let messageFontStyle = '';
+                    if (messageFontBold) {
+                        messageFontStyle = 'bold ' + messageFontStyle;
+                    }
+                    if (messageFontItalic) {
+                        messageFontStyle = 'italic ' + messageFontStyle;
+                    }
+                    window.canvasTxt.drawText(ctx, message, {
+                        x: canvas.width * ((1.0 - (messageMaxWidth / 100)) / 2),
+                        y: canvas.height * messageYPos / 100,
+                        width: canvas.width * (messageMaxWidth / 100),
+                        height: canvas.height,
+                        align: 'center',
+                        vAlign: 'top',
+                        font: messageFont,
+                        fontSize: messageFontSize,
+                        fontStyle: messageFontStyle,
+                        lineHeight: messageLineSpacing,
+                    });
+                    
+                    const filename = messages.length > 1 ? `${name}_${msgIndex + 1}.png` : `${name}.png`;
+                    zip.file(filename, canvas.toDataURL('image/png').split(";base64,")[1], {base64: true});
                 });
-                zip.file(`${name}.png`, canvas.toDataURL('image/png').split(";base64,")[1], {base64: true});
             });
 
             zip.generateAsync({type:"base64"})
